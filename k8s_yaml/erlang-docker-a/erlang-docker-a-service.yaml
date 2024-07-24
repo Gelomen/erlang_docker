@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: erlang-docker-a-svc
+  namespace: default
+  labels:
+    app: erlang-docker-a
+spec:
+  type: NodePort            # NodePort 不能负载均衡, 若要负载均衡, 需要配置为 LoadBalancer, 然后使用 ingress 组件 + Nginx 做负载均衡
+  selector:
+    app: erlang-docker-a
+  ports:
+    - name: http            # 用于 service http 访问时用
+      protocol: TCP         # 协议类型, TCP
+      port: 80              # 集群内 http 访问端口
+      targetPort: 8080      # 对应 `pod` 中程序的端口, 这里是 erlang 节点的 http 端口
+      nodePort: 30080       # 映射到外部服务时, 节点的端口
+    - name: ws              # 用于 service ws 访问时用
+      protocol: TCP         # 协议类型, TCP
+      port: 9090            # 集群内 ws 访问端口
+      targetPort: 9090      # 对应 `pod` 中程序的端口, 这里是 erlang 节点的 ws 端口
+      nodePort: 30090       # 映射到外部服务时, 节点的端口

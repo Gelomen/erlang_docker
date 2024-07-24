@@ -1,0 +1,8 @@
+[
+    {erlang_docker, [
+        {http_port, 8080},
+        {ws_port, 9090},
+        {a_svc_domain, "${A_SERVICE_DOMAIN}"},
+        {b_svc_domain, "${B_SERVICE_DOMAIN}"}
+    ]}
+].

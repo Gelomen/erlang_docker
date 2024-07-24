@@ -1,0 +1,12 @@
+{application, erlang_docker,
+    [{description, "An OTP application"},
+        {vsn, "0.1.0"},
+        {registered, []},
+        {mod, {erlang_docker_app, []}},
+        {applications, [kernel, stdlib, jsx, cowboy, hackney]},
+        {env, []},
+        {modules, []},
+
+        {licenses, ["Apache-2.0"]},
+        {links, []}
+    ]}.

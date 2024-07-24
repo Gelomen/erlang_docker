@@ -1,0 +1,5 @@
+.idea
+*.iml
+_build
+*.tar
+*.crashdump

@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: erlang-docker-a-sfs
+  namespace: default
+spec:
+  serviceName: "erlang-docker-a-hl"                     # 需要跟某个 `svc` 配置的 `metadata.name` 对应, 由于需要生成唯一的 DNS, 所以这里使用 `headless`` 配置的名字
+  replicas: 3                                           # pod 容器数量
+  selector:
+    matchLabels:
+      app: erlang-docker-a                              # 必须匹配 .spec.template.metadata.labels
+  template:
+    metadata:
+      labels:
+        app: erlang-docker-a                            # 必须匹配 .spec.selector.matchLabels
+    spec:
+      containers:
+        - name: erlang-docker-a
+          image: 192.168.64.2:5000/erlang-docker-a:latest
+          env:
+            - name: NAMESPACE                           # 命名空间
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME                            # pod 名字
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: LOCAL_IP                            # 节点IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: ERLANG_HOST_NAME                    # 节点 DNS 名字
+              value: "$(POD_NAME).erlang-docker-a-hl"   # 完整名字 $(POD_NAME).erlang-docker-a-hl.$(NAMESPACE).svc.cluster.local
+            - name: A_SERVICE_DOMAIN                    # a 版服务 service 集群内部域名
+              value: "erlang-docker-a-svc"              # 完整名字 erlang-docker-a-svc.$(NAMESPACE).svc.cluster.local
+            - name: B_SERVICE_DOMAIN                    # b 版服务 service 集群内部域名
+              value: "erlang-docker-b-svc"              # 完整名字 erlang-docker-b-svc.$(NAMESPACE).svc.cluster.local
+          ports:
+            - containerPort: 4369                       # erlang 节点 epmd 端口
+              name: epmd
+            - containerPort: 8080                       # erlang 节点 http 端口
+              name: http
+            - containerPort: 9090                       # erlang 节点 ws 端口
+              name: ws
+          volumeMounts:
+            - name: erlang-docker-a-volume              # 使用的持久卷名称
+              mountPath: /mnt/erlang-docker-a-volume    # 将申请的卷挂载到容器的 /mnt/erlang-docker-a-volume 目录
+  volumeClaimTemplates:
+    - metadata:
+        name: erlang-docker-a-volume                    # 持久卷名称
+      spec:
+        accessModes: [ "ReadWriteOncePod" ]             # 访问模式, ReadWriteOncePod: 单个pod读写
+        resources:
+          requests:
+            storage: 1Gi                                # 申请的持久卷大小, 这里是 1GB
